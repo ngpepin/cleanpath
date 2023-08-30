@@ -20,7 +20,7 @@
  * 
  * Example:
  * 
- * cleanpath.exe --target-dir G:\OLD_NC_Files --matches "(\.svn|_svn)$" -R --safe --logfile G:\OLD_NC_Files_cleanpath.log  --backup G:\OLD_NC_Files_BAK
+ * cleanpath.exe --target-dir G:\OLD_NC_Files --matches "(\.svn|_svn)$" --dir-matches ^_gsdata_$ -R --safe --logfile G:\OLD_NC_Files_cleanpath.log  --backup G:\OLD_NC_Files_BAK
  *
  * Arguments:
  * --target-dir:   The directory you want to clean. Defaults to the current directory if not specified.
@@ -48,27 +48,79 @@ namespace CleanPath
     class Program
     {
         static string? logfile = null, defaultLogfile = null;
+        static bool verbose = false;
         static void Main(string[] args)
         {
             // Parse command-line arguments
             string? targetDir = null, backup = null;
-            string[]? matches = null;
+            string[]? matches = null, dirMatches = null;
             bool R = false, safe = false, help = false;
             int safeLimit = 15;
 
             WriteLineOutput();
-            WriteLineOutput("  | Cleanpath performs automated file cleanup based on user-defined criteria.");
-            WriteLineOutput("  | It deletes zero-byte files by default and files matching specific regular expressions");
-            WriteLineOutput("  | if supplied by the user (and does so recursively if asked).  It does not delete");
-            WriteOutput("  | folders, leaving the directory structure unchanged.");
-
+            if (verbose)
+            {
+                WriteLineOutput("  | Cleanpath performs automated file cleanup based on user-defined criteria.");
+                WriteLineOutput("  | It deletes zero-byte files by default and files matching specific regular expressions");
+                WriteOutput("  | if supplied by the user (and does so recursively if asked).");
+            }
+            
             if ((args.Length > 0) && (args[0] != "--help"))
             {
-                WriteLineOutput(" Choose '--help' for more details.");
-                WriteLineOutput();
-
+                if (verbose)
+                {
+                    WriteLineOutput(" Choose '--help' for more details.");
+                    WriteLineOutput();
+                }
+  
                 for (int i = 0; i < args.Length; i++)
                 {
+                    switch (args[i])
+                    {
+                        case "--target-dir":
+                            targetDir = args[++i];
+                            if (verbose) WriteLineOutput($" - Target directory: {targetDir}");
+                            break;
+                        case "--matches":
+                            matches = args[++i].Split(',');
+                            if (verbose) WriteLineOutput($" - File matches: {string.Join(", ", matches)}");
+                            break;
+                        case "--dir-matches":
+                            dirMatches = args[++i].Split(',');
+                            if (verbose) WriteLineOutput($" - Directory matches: {string.Join(", ", dirMatches)}");
+                            break;
+                        case "-R":
+                            R = true;
+                            if (verbose) WriteLineOutput(" - Recursive");
+                            break;
+                        case "--safe":
+                            safe = true;
+                            if (verbose) WriteLineOutput(" - Safe mode");
+                            break;
+                        case "--safe-limit":
+                            safeLimit = int.Parse(args[++i]);
+                            if (verbose) WriteLineOutput($" - Safe limit: {safeLimit}");
+                            break;
+                        case "--logfile":
+                            logfile = args[++i];
+                            if (verbose) WriteLineOutput($" - Logfile: {logfile}");
+                            break;
+                        case "--backup":
+                            backup = args[++i];
+                            if (verbose) WriteLineOutput($" - Backup: {backup}");
+                            break;
+                        case "-v":
+                        case "--verbose":
+                            verbose = true;
+                            break;
+                        case "--help":
+                            help = true;
+                            break;
+                        default:
+                            WriteLineOutput($"Unknown option: {args[i]}");
+                            return;
+                    }
+                    /*
                     switch (args[i])
                     {
                         case "--target-dir":
@@ -107,15 +159,16 @@ namespace CleanPath
                             help = true;
                             break;
                     }
+                    */
                 }
    
-                if (safe)
+                if (safe && verbose)
                 {
                     WriteLineOutput($" - Safe deletion for the first {safeLimit} files");
                     WriteLineOutput($"   (user asked for permission to proceed with ANY deletions)");
                 }
             }
-            else
+            else if (verbose)
             {
                 WriteLineOutput();
             }
@@ -152,7 +205,7 @@ namespace CleanPath
 
             WriteLineOutput();
             WriteLineOutput("Loading entire directory structure. This may take a few minutes.");
-            DeleteFiles(rootPath, matches, R, safe, safeLimit, logfile, backup);
+            DeleteFilesAndFolders(rootPath, matches, dirMatches, R, safe, safeLimit, logfile, backup);
 
             if (R)
             {
@@ -160,7 +213,7 @@ namespace CleanPath
                 {
                     foreach (var dir in Directory.GetDirectories(rootPath, "*", SearchOption.AllDirectories))
                     {
-                        DeleteFiles(dir, matches, false, safe, safeLimit, logfile, backup);
+                        DeleteFilesAndFolders(dir, matches, dirMatches, false, safe, safeLimit, logfile, backup);
                     }
                 }
                 catch (UnauthorizedAccessException ex)
@@ -181,11 +234,13 @@ namespace CleanPath
             WriteLineOutput("Options:");
             WriteLineOutput("  --target-dir    The target directory to clean. Defaults to the current directory if not specified.");
             WriteLineOutput("  --matches       Comma-separated list of regular expressions to match files for deletion.");
+            WriteLineOutput("  --dir-matches   Comma-separated list of regular expressions to match directories for deletion.");
             WriteLineOutput("  -R              Enable recursive deletion in subdirectories.");
             WriteLineOutput("  --safe          Enable safe mode, which prompts the user before deletion.");
             WriteLineOutput("  --safe-limit    The limit for the number of files shown in safe mode before deletion. Default is 15.");
             WriteLineOutput("  --logfile       Specify a log file to which deleted file paths will be written.");
             WriteLineOutput("  --backup        Specify a backup folder where files will be copied before deletion.");
+            WriteLineOutput("  -v, --verbose   Enable verbose output.");
             WriteLineOutput("  --help          Show this help message and exit.");
         }
 
@@ -214,6 +269,7 @@ namespace CleanPath
             WriteLineOutput();
         }
 
+        /*
         static void DeleteFiles(string path, string[]? matches, bool recursive, bool safe, int safeLimit, string? logfile, string? backup)
         {
             List<string> filesToDelete = new List<string>();
@@ -304,6 +360,99 @@ namespace CleanPath
                 }
             }
         }
+        */
+        static void DeleteFilesAndFolders(string? targetDir, string[]? fileMatches, string[]? dirMatches, bool recursive, bool safe, int safeLimit, string? logfile, string? backup)
+        {
+            if (string.IsNullOrEmpty(targetDir) || !Directory.Exists(targetDir))
+            {
+                WriteLineOutput("Error: Target directory is either null or doesn't exist.");
+                return;
+            }
+
+            try
+            {
+                // Delete files
+                var filesToDelete = Directory.GetFiles(targetDir, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                    .Where(file =>
+                        new FileInfo(file).Length == 0 ||
+                        (fileMatches != null && fileMatches.Any(m => Regex.IsMatch(Path.GetFileName(file), m))))
+                    .ToList();
+
+                int deletedItemCount = 0;
+
+                if (safe && filesToDelete.Count > 0)
+                {
+                    var filesToShow = filesToDelete.Take(safeLimit);
+                    WriteLineOutput("Files to be deleted:");
+                    foreach (var file in filesToShow)
+                    {
+                        WriteLineOutput(file);
+                    }
+
+                    WriteLineOutput("Continue to delete these files? (Y/N): ");
+                    if (Console.ReadLine()?.ToLower() != "y")
+                    {
+                        return;
+                    }
+
+                    deletedItemCount += filesToShow.Count();
+                }
+
+                foreach (var file in filesToDelete)
+                {
+                    if (verbose) WriteLineOutput($"Deleting file: {file}");
+
+                    if (!string.IsNullOrEmpty(backup))
+                    {
+                        var backupPath = Path.Combine(backup, Path.GetRelativePath(targetDir, file));
+                        File.Copy(file, backupPath, true);
+                    }
+
+                    File.Delete(file);
+                    if (!string.IsNullOrEmpty(logfile))
+                    {
+                        File.AppendAllText(logfile, $"Deleted File: {file}" + Environment.NewLine);
+                    }
+                }
+
+                // Delete directories
+                var dirsToDelete = Directory.GetDirectories(targetDir, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
+                    .Where(dir => dirMatches != null && dirMatches.Any(m => Regex.IsMatch(Path.GetFileName(dir), m)))
+                    .ToList();
+
+                if (safe && dirsToDelete.Count > 0)
+                {
+                    var dirsToShow = dirsToDelete.Take(safeLimit - deletedItemCount);
+                    WriteLineOutput("Directories to be deleted (including all files and child folders):");
+                    foreach (var dir in dirsToShow)
+                    {
+                        WriteLineOutput(dir);
+                    }
+
+                    WriteLineOutput("Continue to delete these directories? (Y/N): ");
+                    if (Console.ReadLine()?.ToLower() != "y")
+                    {
+                        return;
+                    }
+                }
+
+                foreach (var dir in dirsToDelete)
+                {
+                    if (verbose) WriteLineOutput($"Deleting directory (including all files and child folders): {dir}");
+
+                    Directory.Delete(dir, true);
+                    if (!string.IsNullOrEmpty(logfile))
+                    {
+                        File.AppendAllText(logfile, $"Deleted Directory: {dir}" + Environment.NewLine);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                WriteLineOutput($"An error occurred: {e.Message}");
+            }
+        }
+
         static void WriteLineOutput(string? message = null, string? logfile = null)
         {
 
@@ -316,6 +465,7 @@ namespace CleanPath
             {
                 File.AppendAllText(logfile, message + Environment.NewLine);
             }
+
         }
 
         static void WriteOutput(string? message = null, string? logfile = null)
