@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "cleanpath": {
+      "commandName": "Project",
+      "commandLineArgs": "--target-dir G:\\OLD_NC_Files --matches \"(\\.svn|_svn)$\" -R --safe --logfile G:\\OLD_NC_Files_cleanpath.log  --backup G:\\OLD_NC_Files_BAK",
+      "workingDirectory": "G:\\"
+    }
+  }
+}
