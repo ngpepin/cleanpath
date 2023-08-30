@@ -37,6 +37,7 @@
  */
 
 using System;
+using System.Buffers.Text;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -55,58 +56,74 @@ namespace CleanPath
             bool R = false, safe = false, help = false;
             int safeLimit = 15;
 
-            for (int i = 0; i < args.Length; i++)
-            {
-                switch (args[i])
-                {
-                    case "--target-dir":
-                        targetDir = args[++i];
-                        WriteLineOutput($" - Target directory: {targetDir}");
-                        break;
-                    case "--matches":
-                        matches = args[++i].Split(',');
-                        WriteOutput(" - Matching deletion regex(ex):");
-                        foreach (string myRegex in matches)
-                        {
-                            WriteOutput($" {myRegex}");
-                        }
-                        WriteLineOutput(" + zero-byte files");
+            WriteLineOutput();
+            WriteLineOutput("Cleanpath performs automated file cleanup based on user-defined criteria.");
+            WriteLineOutput("It deletes zero-byte files by default and files matching specific regular expressions");
+            WriteLineOutput("if supplied by the user (doing so recursively if requested).  It does not delete");
+            WriteOutput("folders, leaving the directory structure unchanged.");
 
-                        break;
-                    case "-R":
-                        R = true;
-                        WriteLineOutput(" - Recursive");
-                        break;
-                    case "--safe":
-                        safe = true;
-                        break;
-                    case "--safe-limit":
-                        safeLimit = int.Parse(args[++i]);
-                        break;
-                    case "--logfile":
-                        logfile = args[++i];
-                        WriteLineOutput($" - Log file: {logfile}");
-                        break;
-                    case "--backup":
-                        backup = args[++i];
-                        WriteLineOutput($" - Backup directory: {backup}");
-                        break;
-                    case "--help":
-                        help = true;
-                        break;
+            if ((args.Length > 0) && (args[1] != "--help"))
+            {
+                WriteLineOutput("Choose '--help' for more details.");
+                WriteLineOutput();
+
+                for (int i = 0; i < args.Length; i++)
+                {
+                    switch (args[i])
+                    {
+                        case "--target-dir":
+                            targetDir = args[++i];
+                            WriteLineOutput($" - Target directory: {targetDir}");
+                            break;
+                        case "--matches":
+                            matches = args[++i].Split(',');
+                            WriteOutput(" - Matching deletion regex(ex):");
+                            foreach (string myRegex in matches)
+                            {
+                                WriteOutput($" {myRegex}");
+                            }
+                            WriteLineOutput(" + zero-byte files");
+
+                            break;
+                        case "-R":
+                            R = true;
+                            WriteLineOutput(" - Recursive");
+                            break;
+                        case "--safe":
+                            safe = true;
+                            break;
+                        case "--safe-limit":
+                            safeLimit = int.Parse(args[++i]);
+                            break;
+                        case "--logfile":
+                            logfile = args[++i];
+                            WriteLineOutput($" - Log file: {logfile}");
+                            break;
+                        case "--backup":
+                            backup = args[++i];
+                            WriteLineOutput($" - Backup directory: {backup}");
+                            break;
+                        case "--help":
+                            help = true;
+                            break;
+                    }
+                }
+   
+                if (safe)
+                {
+                    WriteLineOutput($" - Safe deletion for the first {safeLimit} files");
+                    WriteLineOutput($"   (user asked for permission to proceed with ANY deletions)");
                 }
             }
-
-            if (safe)
+            else
             {
-                WriteLineOutput($" - Safe deletion for the first {safeLimit} files");
-                WriteLineOutput($"   (user asked for permission to proceed with ANY deletions)");
+                WriteLineOutput();
             }
 
-            WriteLineOutput();
             // Show help if requested
             if (help)
             {
+                WriteLineOutput();
                 ShowHelp();
                 return;
             }
@@ -233,7 +250,7 @@ namespace CleanPath
                     WriteLineOutput(file);
                 }
 
-                Console.Write("Continue to delete? (Y/n): ");
+                Console.Write("Continue to delete? (Y/N): ");
                 var choice = Console.ReadLine();
                 if (!string.IsNullOrEmpty(choice))
                 {
