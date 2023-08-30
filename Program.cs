@@ -1,39 +1,58 @@
 ﻿/*
- * Application Name: cleanpath
- * 
- * Description:
- * This C# console application is designed to perform automated file cleanup based on various user-defined criteria.
- * 
- * Features:
- * - Deletes zero-byte files in the specified directory by default.
- * - Supports recursive deletion in subdirectories with the "-R" option.
- * - Allows deletion of files matching specific regular expressions supplied with "--matches".
- * - Provides a "safe" mode that prompts the user for confirmation before deletion, enabled with "--safe".
- * - Allows setting a limit for the number of files displayed in safe mode with "--safe-limit".
- * - Logs the paths of deleted files to a specified log file when "--logfile" is used.
- * - Backs up files to a specified directory before deletion if "--backup" is used.
- * 
- * Usage:
- * To use the application, run the executable with the following command-line arguments:
- * 
- * cleanpath.exe --target-dir "YourTargetDirectory" --matches "YourRegex" -R --safe --safe-limit 15 --logfile "log.txt" --backup:"backupDir"
- * 
- * Example:
- * 
- * cleanpath.exe --target-dir G:\OLD_NC_Files --matches "(\.svn|_svn)$" --dir-matches ^_gsdata_$ -R --safe --logfile G:\OLD_NC_Files_cleanpath.log  --backup G:\OLD_NC_Files_BAK
- *
- * Arguments:
- * --target-dir:   The directory you want to clean. Defaults to the current directory if not specified.
- * --matches:      Regular expressions for file types to be deleted. Separate multiple expressions with a pipe '|' or leave a space between.
- * -R:             Enables recursive deletion in subdirectories.
- * --safe:         Enables safe mode, which prompts for user confirmation before deletion.
- * --safe-limit:   Sets the number of files to show in safe mode before asking for confirmation. Default is 15.
- * --logfile:      Specifies the path of the log file where deleted file paths will be stored.
- * --backup:       Specifies the directory where files will be backed up before deletion.
- * 
- * Note: 
- * The application will skip directories it does not have permission to access, such as 'System Volume Information'.
- *
+ 
+ SYNOPSIS
+    This console application recursively deletes zero-byte files and files matching user-defined regular expressions in a given directory.
+
+ DESCRIPTION
+    The application accepts several optional command-line parameters to specify the directory, matching files, and other behaviors.
+    It traverses the given directory recursively (if specified) and deletes zero-byte files and files that match the user-defined regex.
+    The application supports "safe mode" that prompts the user for confirmation before actual deletion.
+    It also provides an option to back up files before deletion and to log the deleted file paths.
+
+ PARAMETER --target-dir
+    Specifies the directory you want to clean. Defaults to the current directory if not specified.
+
+ PARAMETER --matches
+    Specifies the regular expressions for file types to be deleted. Separate multiple expressions with a comma.
+
+ PARAMETER -R
+    Enables recursive deletion in subdirectories.
+
+ PARAMETER --safe
+    Enables safe mode, which prompts the user for confirmation before deletion.
+
+ PARAMETER --safe-limit
+    Specifies the number of files to show in safe mode before asking for confirmation. Default is 15.
+
+ PARAMETER --logfile
+    Specifies the path of the log file where deleted file paths will be stored.
+
+ PARAMETER --backup
+    Specifies the directory where files will be backed up before deletion.
+
+ PARAMETER --verbose
+    If provided, the application outputs additional information, such as the parameters chosen and directories being examined.
+
+ PARAMETER --dir-matches
+    Specifies the regular expressions for directory names to be deleted. Separate multiple expressions with a comma.
+
+ EXAMPLE
+    cleanpath --target-dir "C:\Folder1" --matches ".txt|.log" -R
+
+    Deletes zero-byte files and files ending with .txt or .log in C:\Folder1 and its subdirectories.
+
+ EXAMPLE
+    cleanpath --target-dir "C:\Folder1" --matches ".tmp" --safe --safe-limit 10 --backup "C:\Backup"
+
+    Deletes files ending with .tmp in C:\Folder1, but asks for user confirmation after showing the first 10 matches. 
+    Also backs up the deleted files to C:\Backup.
+
+ NOTES
+    1. The application will skip directories it does not have permission to access, such as 'System Volume Information'.
+    2. Be cautious when specifying the backup directory to ensure it does not conflict with the target directory.
+    3. If in safe mode, the application will prompt the user for confirmation, showing up to 'safe-limit' number of files.
+
+ 
  */
 
 using System;
