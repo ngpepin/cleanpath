@@ -150,6 +150,7 @@ namespace CleanPath
             }
             defaultLogfile = logfile;
 
+            WriteLineOutput();
             WriteLineOutput("Loading entire directory structure. This may take a few minutes.");
             DeleteFiles(rootPath, matches, R, safe, safeLimit, logfile, backup);
 
