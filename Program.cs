@@ -61,11 +61,11 @@ namespace CleanPath
                 {
                     case "--target-dir":
                         targetDir = args[++i];
-                        WriteLineOutput($"Target directory: {targetDir}");
+                        WriteLineOutput($" - Target directory: {targetDir}");
                         break;
                     case "--matches":
                         matches = args[++i].Split(',');
-                        WriteOutput("Matching deletion regex(ex):");
+                        WriteOutput(" - Matching deletion regex(ex):");
                         foreach (string myRegex in matches)
                         {
                             WriteOutput($" {myRegex}");
@@ -75,23 +75,21 @@ namespace CleanPath
                         break;
                     case "-R":
                         R = true;
-                        WriteLineOutput("Recursive");
+                        WriteLineOutput(" - Recursive");
                         break;
                     case "--safe":
                         safe = true;
-                        WriteLineOutput("Safe deletion");
                         break;
                     case "--safe-limit":
                         safeLimit = int.Parse(args[++i]);
-                        WriteLineOutput($"Safe deletion for first {safeLimit} files (user asked for permission)");
                         break;
                     case "--logfile":
                         logfile = args[++i];
-                        WriteLineOutput($"Log file: {logfile}");
+                        WriteLineOutput($" - Log file: {logfile}");
                         break;
                     case "--backup":
                         backup = args[++i];
-                        WriteLineOutput($"Backup directory: {backup}");
+                        WriteLineOutput($" - Backup directory: {backup}");
                         break;
                     case "--help":
                         help = true;
@@ -101,9 +99,11 @@ namespace CleanPath
 
             if (safe)
             {
-                WriteLineOutput($"Safe deletion for first {safeLimit} files");
+                WriteLineOutput($" - Safe deletion for the first {safeLimit} files");
+                WriteLineOutput($"   (user asked for permission to proceed with ANY deletions)");
             }
 
+            WriteLineOutput();
             // Show help if requested
             if (help)
             {
@@ -158,7 +158,7 @@ namespace CleanPath
 
         static void ShowHelp()
         {
-            WriteLineOutput("Usage: CleanPath [OPTIONS]");
+            WriteLineOutput("Usage: cleanpath [OPTIONS]");
             WriteLineOutput();
             WriteLineOutput("Options:");
             WriteLineOutput("  --target-dir    The target directory to clean. Defaults to the current directory if not specified.");
