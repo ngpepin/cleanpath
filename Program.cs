@@ -1,5 +1,5 @@
 ﻿/*
- * Application Name: CleanPath
+ * Application Name: cleanpath
  * 
  * Description:
  * This C# console application is designed to perform automated file cleanup based on various user-defined criteria.
@@ -19,11 +19,12 @@
  * cleanpath.exe --target-dir "YourTargetDirectory" --matches "YourRegex" -R --safe --safe-limit 15 --logfile "log.txt" --backup:"backupDir"
  * 
  * Example:
+ * 
  * cleanpath.exe --target-dir G:\OLD_NC_Files --matches "(\.svn|_svn)$" -R --safe --logfile G:\OLD_NC_Files_cleanpath.log  --backup G:\OLD_NC_Files_BAK
  *
  * Arguments:
  * --target-dir:   The directory you want to clean. Defaults to the current directory if not specified.
- * --matches:      Regular expressions for file types to be deleted. Separate multiple expressions with a pipe '|'.
+ * --matches:      Regular expressions for file types to be deleted. Separate multiple expressions with a pipe '|' or leave a space between.
  * -R:             Enables recursive deletion in subdirectories.
  * --safe:         Enables safe mode, which prompts for user confirmation before deletion.
  * --safe-limit:   Sets the number of files to show in safe mode before asking for confirmation. Default is 15.
