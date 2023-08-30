@@ -139,46 +139,6 @@ namespace CleanPath
                             WriteLineOutput($"Unknown option: {args[i]}");
                             return;
                     }
-                    /*
-                    switch (args[i])
-                    {
-                        case "--target-dir":
-                            targetDir = args[++i];
-                            WriteLineOutput($" - Target directory: {targetDir}");
-                            break;
-                        case "--matches":
-                            matches = args[++i].Split(',');
-                            WriteOutput(" - Matching deletion regex(ex):");
-                            foreach (string myRegex in matches)
-                            {
-                                WriteOutput($" {myRegex}");
-                            }
-                            WriteLineOutput(" + zero-byte files");
-
-                            break;
-                        case "-R":
-                            R = true;
-                            WriteLineOutput(" - Recursive");
-                            break;
-                        case "--safe":
-                            safe = true;
-                            break;
-                        case "--safe-limit":
-                            safeLimit = int.Parse(args[++i]);
-                            break;
-                        case "--logfile":
-                            logfile = args[++i];
-                            WriteLineOutput($" - Log file: {logfile}");
-                            break;
-                        case "--backup":
-                            backup = args[++i];
-                            WriteLineOutput($" - Backup directory: {backup}");
-                            break;
-                        case "--help":
-                            help = true;
-                            break;
-                    }
-                    */
                 }
    
                 if (safe && verbose)
@@ -288,104 +248,16 @@ namespace CleanPath
             WriteLineOutput();
         }
 
-        /*
-        static void DeleteFiles(string path, string[]? matches, bool recursive, bool safe, int safeLimit, string? logfile, string? backup)
-        {
-            List<string> filesToDelete = new List<string>();
-
-            // Call the ExamineDirectory method here
-
-
-            ExamineDirectory(path);
-
-            try
-            {
-                filesToDelete = Directory.GetFiles(path, "*", recursive ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
-                                        .Where(file => new FileInfo(file).Length == 0 ||
-                                         (matches != null && matches.Any(m => Regex.IsMatch(Path.GetFileName(file), m))))
-                                        .ToList();
-            }
-            catch (UnauthorizedAccessException ep)
-            {
-
-                WriteLineOutput($"Skipping folder due to permission issues: {ep.Message}", logfile);
-                return;
-            }
-            catch (Exception ed)
-            {
-                WriteLineOutput($"Skipping folder due to exception: {ed.Message}");
-                return;
-            }
-
-            if (safe && filesToDelete.Count > 0)
-            {
-                var filesToShow = filesToDelete.Take(safeLimit);
-                WriteLineOutput("Files to be deleted:");
-                foreach (var file in filesToShow)
-                {
-                    WriteLineOutput(file);
-                }
-
-                Console.Write("Continue to delete? (Y/N): ");
-                var choice = Console.ReadLine();
-                if (!string.IsNullOrEmpty(choice))
-                {
-                    if (choice.ToLower() != "y")
-                    {
-                        return;
-                    }
-                }
-            }
-
-            foreach (var file in filesToDelete)
-            {
-                if (!string.IsNullOrEmpty(file))
-                {
-                    if (!string.IsNullOrEmpty(backup))
-                    {
-                        string? backupPath = Path.Combine(backup, Path.GetRelativePath(path, file));
-                        string? backupDir = Path.GetDirectoryName(backupPath);
-                        if (!string.IsNullOrEmpty(backupPath))
-                        {
-
-                            if (!string.IsNullOrEmpty(backupDir))
-                            {
-                                if (!Directory.Exists(backupDir))
-                                {
-                                    Directory.CreateDirectory(backupDir);
-                                }
-                            }
-                            if (!string.IsNullOrEmpty(backupPath))
-                            {
-                                File.Copy(file, backupPath, true);
-                            }
-                        }
-                    }
-                    try
-                    {
-                        File.Delete(file);
-                        WriteLineOutput($"Deleting {file}");
-                    }
-                    catch (Exception e)
-                    {
-                        WriteLineOutput($"Error deleting {file} ({e})");
-                    }
-
-                    if (!string.IsNullOrEmpty(logfile))
-                    {
-                        File.AppendAllText(logfile, file + Environment.NewLine);
-                    }
-
-                }
-            }
-        }
-        */
         static void DeleteFilesAndFolders(string? targetDir, string[]? fileMatches, string[]? dirMatches, bool recursive, bool safe, int safeLimit, string? logfile, string? backup)
         {
             if (string.IsNullOrEmpty(targetDir) || !Directory.Exists(targetDir))
             {
                 WriteLineOutput("Error: Target directory is either null or doesn't exist.");
                 return;
+            }      
+            if (verbose)
+            {
+                ExamineDirectory(targetDir);
             }
 
             try
