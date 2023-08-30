@@ -57,14 +57,14 @@ namespace CleanPath
             int safeLimit = 15;
 
             WriteLineOutput();
-            WriteLineOutput("Cleanpath performs automated file cleanup based on user-defined criteria.");
-            WriteLineOutput("It deletes zero-byte files by default and files matching specific regular expressions");
-            WriteLineOutput("if supplied by the user (doing so recursively if requested).  It does not delete");
-            WriteOutput("folders, leaving the directory structure unchanged.");
+            WriteLineOutput("  | Cleanpath performs automated file cleanup based on user-defined criteria.");
+            WriteLineOutput("  | It deletes zero-byte files by default and files matching specific regular expressions");
+            WriteLineOutput("  | if supplied by the user (and does so recursively if asked).  It does not delete");
+            WriteOutput("  | folders, leaving the directory structure unchanged.");
 
-            if ((args.Length > 0) && (args[1] != "--help"))
+            if ((args.Length > 0) && (args[0] != "--help"))
             {
-                WriteLineOutput("Choose '--help' for more details.");
+                WriteLineOutput(" Choose '--help' for more details.");
                 WriteLineOutput();
 
                 for (int i = 0; i < args.Length; i++)
@@ -121,7 +121,7 @@ namespace CleanPath
             }
 
             // Show help if requested
-            if (help)
+            if (help || args[0] == "--help")
             {
                 WriteLineOutput();
                 ShowHelp();
